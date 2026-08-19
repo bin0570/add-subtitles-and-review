@@ -109,13 +109,16 @@ python -m subtitle_flow.cli export \
 ```
 
 ### 配置（config.json 或环境变量 `SUB_` 前缀）
+> **首次使用**：把 `config.sample.json` 复制成 `config.json`，再填上你的 Groq API key（`console.groq.com` 免费注册）。`config.json` 含密钥，**不会上传到 Git**。
+
 | 字段 | 说明 | 默认 |
 |------|------|------|
-| `utaudio_url` / `utaudio_key` | UTAudio ASR 端点与密钥 | — |
-| `llm_base_url` | OpenAI 兼容网关 | `http://127.0.0.1:31415/v1` |
-| `llm_api_key` | 网关密钥 | `sk-local` |
-| `grammar_model` | 语义校对模型 | `qwen3.7-flash` |
-| `visual_model` | 画面核对模型 | `qwen3.7-f-vision` |
+| `asr_backend` | 转写后端：`groq` / `utaudio` | `groq` |
+| `groq_api_key` | Groq 密钥（免费） | — |
+| `whisper_model` | Groq 转写模型 | `whisper-large-v3-turbo` |
+| `llm_api_key` | LLM 网关密钥（Groq 同一把） | 同 groq |
+| `grammar_model` | 语义校对模型 | `qwen/qwen3.6-27b` |
+| `visual_model` | 画面核对模型（Groq 下自动跳过） | `qwen/qwen3.6-27b` |
 | `hotwords` | 热词列表，提升 ASR 准确率 | `[]` |
 | `ffmpeg_bin` / `ffprobe_bin` | 本地二进制 | `ffmpeg` / `ffprobe` |
 | `mock` | 离线模拟 | `false` |
