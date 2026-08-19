@@ -27,6 +27,68 @@ class Transcriber:
     def transcribe(self, media_path: str) -> Transcript:
         if self.settings.mock:
             return self._mock(media_path)
+        if self.settings.asr_backend == "groq":
+            return self._groq_whisper(media_path)
+        return self._utaudio(media_path)
+
+    # ---- Groq whisper ---------------------------------------------------- #
+    def _groq_whisper(self, media_path: str) -> Transcript:
+        """用 Groq whisper 转写: 上传音频 -> 拿带时间戳的 segments。"""
+        import urllib.request
+        import urllib.parse
+
+        if not self.settings.groq_api_key:
+            raise RuntimeError("asr_backend=groq 但 groq_api_key 为空, 请在 config.json 配置")
+
+        # Groq 官方返回的是纯文本; 要拿到带时间轴的 segments,
+        # 用 timestamp_granularities 请求 verbatim JSON。
+        url = self.settings.groq_base_url.rstrip("/") + "/audio/transcriptions"
+        boundary = "----groqboundary"
+        body = bytearray()
+        fname = Path(media_path).name
+        with open(media_path, "rb") as fh:
+            raw = fh.read()
+        # file 字段
+        body += f"--{boundary}\r\n".encode()
+        body += f'Content-Disposition: form-data; name="file"; filename="{fname}"\r\n'.encode()
+        body += b"Content-Type: application/octet-stream\r\n\r\n"
+        body += raw + b"\r\n"
+        # model 字段
+        body += f"--{boundary}\r\n".encode()
+        body += b'Content-Disposition: form-data; name="model"\r\n\r\n'
+        body += self.settings.whisper_model.encode() + b"\r\n"
+        # 请求 verbose_json, 让返回带 segments(时间轴)
+        body += f"--{boundary}\r\n".encode()
+        body += b'Content-Disposition: form-data; name="response_format"\r\n\r\n'
+        body += b"verbose_json\r\n"
+        body += f"--{boundary}--\r\n".encode()
+
+        req = urllib.request.Request(
+            url, data=bytes(body),
+            headers={
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "Authorization": f"Bearer {self.settings.groq_api_key}",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=self.settings.request_timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        segs = data.get("segments") or []
+        cues = []
+        for i, s in enumerate(segs, 1):
+            cues.append(Cue(
+                index=i,
+                start=float(s.get("start", i)),
+                end=float(s.get("end", i + 1)),
+                raw_text=s.get("text", "").strip(),
+                confidence=1.0,
+            ))
+        lang = data.get("language") or self.settings.language
+        return Transcript(language=lang, hotwords=self.settings.hotwords, cues=cues)
+
+    # ---- UTAudio --------------------------------------------------------- #
+    def _utaudio(self, media_path: str) -> Transcript:
         job_id = self._upload(media_path)
         data = self._poll(job_id)
         cues = []

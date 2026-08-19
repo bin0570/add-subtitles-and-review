@@ -12,12 +12,18 @@ from typing import Any
 ENV_PREFIX = "SUB_"
 
 DEFAULTS: dict[str, Any] = {
+    # 转写后端: "utaudio" | "groq"
+    "asr_backend": "groq",
     "utaudio_url": "https://api.utaudio.com/v1/transcribe",
     "utaudio_key": "",
-    "llm_base_url": "http://127.0.0.1:31415/v1",
-    "llm_api_key": "sk-local",
-    "grammar_model": "qwen3.7-flash",
-    "visual_model": "qwen3.7-f-vision",
+    "groq_base_url": "https://api.groq.com/openai/v1",
+    "groq_api_key": "",
+    "whisper_model": "whisper-large-v3-turbo",
+    # LLM(OpenAI 兼容)后端
+    "llm_base_url": "https://api.groq.com/openai/v1",
+    "llm_api_key": "",
+    "grammar_model": "qwen/qwen3.6-27b",
+    "visual_model": "qwen/qwen3.6-27b",
     "language": "zh",
     "hotwords": [],
     "ffmpeg_bin": "ffmpeg",
@@ -43,8 +49,12 @@ DEFAULTS: dict[str, Any] = {
 
 @dataclass
 class Settings:
+    asr_backend: str = DEFAULTS["asr_backend"]
     utaudio_url: str = DEFAULTS["utaudio_url"]
     utaudio_key: str = DEFAULTS["utaudio_key"]
+    groq_base_url: str = DEFAULTS["groq_base_url"]
+    groq_api_key: str = DEFAULTS["groq_api_key"]
+    whisper_model: str = DEFAULTS["whisper_model"]
     llm_base_url: str = DEFAULTS["llm_base_url"]
     llm_api_key: str = DEFAULTS["llm_api_key"]
     grammar_model: str = DEFAULTS["grammar_model"]

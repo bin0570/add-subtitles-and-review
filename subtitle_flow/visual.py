@@ -40,12 +40,19 @@ class VisualCheck:
 
     def run(self, transcript: Transcript, media_path: str, frame_dir: str) -> Transcript:
         Path(frame_dir).mkdir(parents=True, exist_ok=True)
+        # 当 LLM 后端指向 Groq 时, 已知无适用的开源视觉模型, 温和跳过画面核对,
+        # 只抽帧供人工查看, 不因缺视觉 key 阻塞整条流程。
+        backends_to_skip = ("api.groq.com",)
+        skip_visual = any(h in (self.settings.llm_base_url or "").lower() for h in backends_to_skip)
         targets = [c for c in transcript.cues if c.has_issues]
         for cue in targets:
             frames = self._grab(cue, media_path, frame_dir)
             cue.frames = frames
             if self.settings.mock:
                 self._mock(cue)
+                continue
+            if skip_visual:
+                cue.mark("visual", "info", "画面核对跳过:当前后端(groq)暂无适用视觉模型,请人工查看抽帧。")
                 continue
             self._inspect(cue, frames)
         return transcript
