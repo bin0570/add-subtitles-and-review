@@ -1,4 +1,4 @@
-# 给视频添加字幕,并复核后修改
+# 给视频加字幕然后复核
 
 > 仓库地址：https://github.com/bin0570/add-subtitles-and-review （slug 为 `add-subtitles-and-review`，显示名为中文）
 

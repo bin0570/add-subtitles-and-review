@@ -89,7 +89,7 @@ _HTML_TEMPLATE = """<!doctype html>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>字幕复核 · 给视频添加字幕,并复核后修改</title>
+<title>字幕复核 · 给视频加字幕然后复核</title>
 <style>
   :root{--bg:#f6f7f9;--card:#fff;--line:#e3e6ea;--ink:#1f2329;--mut:#6b7280;
         --ok:#16a34a;--warn:#d97706;--err:#dc2626;--acc:#2563eb;}
@@ -131,7 +131,7 @@ _HTML_TEMPLATE = """<!doctype html>
 </head>
 <body>
 <header>
-  <h1>字幕复核面板 · 给视频添加字幕,并复核后修改</h1>
+  <h1>字幕复核面板 · 给视频加字幕然后复核</h1>
   <div class="meta" id="meta"></div>
 </header>
 

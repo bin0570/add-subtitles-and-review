@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "add-subtitles-and-review"
 version = "1.0.0"
-description = "给视频添加字幕,并复核后修改 — 一条可复核的字幕处理流程：语音转写 → 语义校对 → 画面核对 → 本地交付"
+description = "给视频加字幕然后复核 — 一条可复核的字幕处理流程：语音转写 → 语义校对 → 画面核对 → 本地交付"
 requires-python = ">=3.11"
 dependencies = []
 authors = [{ name = "薯条 Allen", email = "binbin0570@qq.com" }]

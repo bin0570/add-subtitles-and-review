@@ -1,4 +1,4 @@
-"""给视频添加字幕,并复核后修改 —— 核心流程包。"""
+"""给视频加字幕然后复核 —— 核心流程包。"""
 # © 2026 薯条 Allen (binbin0570) — 个人封装的字幕处理工具 (MIT License)
 from .engine import Cue, Issue, Transcript
 from .formats import read_srt, write_srt, write_ass

@@ -48,7 +48,7 @@ def cmd_export(args) -> int:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="subtitle-flow",
-        description="给视频添加字幕,并复核后修改 (可复核字幕处理流程)",
+        description="给视频加字幕然后复核 (可复核字幕处理流程)",
     )
     sub = p.add_subparsers(dest="cmd", required=True)
 
