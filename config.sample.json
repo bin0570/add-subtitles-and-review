@@ -1,0 +1,30 @@
+{
+  "asr_backend": "groq",
+  "groq_base_url": "https://api.groq.com/openai/v1",
+  "groq_api_key": "在这里填你的Groq密钥",
+  "whisper_model": "whisper-large-v3-turbo",
+  "llm_base_url": "https://api.groq.com/openai/v1",
+  "llm_api_key": "在这里填你的Groq密钥",
+  "grammar_model": "qwen/qwen3.6-27b",
+  "visual_model": "qwen/qwen3.6-27b",
+  "language": "zh",
+  "hotwords": ["旧金山", "洛杉矶", "圣地亚哥"],
+  "ffmpeg_bin": "ffmpeg",
+  "ffprobe_bin": "ffprobe",
+  "mock": false,
+  "frame_window": 0.5,
+  "frame_count": 3,
+  "grammar_chunk": 15,
+  "request_timeout": 120,
+  "ass_style": {
+    "FontName": "Microsoft YaHei",
+    "FontSize": 36,
+    "PrimaryColour": "&H00FFFFFF",
+    "OutlineColour": "&H00000000",
+    "Bold": 0,
+    "Outline": 2,
+    "Shadow": 1,
+    "Alignment": 2,
+    "MarginV": 40
+  }
+}

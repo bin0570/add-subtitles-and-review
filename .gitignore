@@ -9,3 +9,5 @@ venv/
 dist/
 build/
 .DS_Store
+# 含 API key 的本地配置不提交; 公开示例用 config.sample.json
+config.json
