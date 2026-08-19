@@ -30,7 +30,53 @@ _USER_TEMPLATE = (
     "请逐条校对并返回 JSON。\n\n{chunk}"
 )
 
-_JSON_SEARCH = re.compile(r"\{.*\}", re.DOTALL)
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
+_JSON_BLOCK_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
+
+
+def _extract_changes_json(raw: str) -> dict | None:
+    """从模型输出里可靠地抽出 changes JSON。
+
+    qwen3.6 常带 <think>...</think> 思考块, 且可能把 JSON 包在 ```json ``` 里。
+    处理顺序: 剥思考块 -> 优先取代码块里的 JSON -> 否则从含 changes 的最外层 {..} 解析。
+    """
+    cleaned = _THINK_RE.sub("", raw)
+    # 1) 命中 ```json {...} ``` 代码块
+    m = _JSON_BLOCK_RE.search(cleaned)
+    if m:
+        try:
+            return json.loads(m.group(1))
+        except Exception:
+            pass
+    # 2) 找从 {"changes" 开始的完整 JSON
+    start = cleaned.find('{"changes"')
+    if start == -1:
+        start = cleaned.find('{\n  "changes"')
+    if start != -1:
+        end = start
+        depth = 0
+        for i in range(start, len(cleaned)):
+            ch = cleaned[i]
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end > start:
+            try:
+                return json.loads(cleaned[start:end])
+            except Exception:
+                pass
+    # 3) 最后兜底
+    m = re.search(r"\{.*\}", cleaned, re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except Exception:
+            return None
+    return None
 
 
 def _as_chunks(items: list, size: int) -> Iterator[list]:
@@ -62,16 +108,15 @@ class GrammarCheck:
              {"role": "user", "content": user}],
             model=self.settings.grammar_model,
             temperature=0.1,
-            json_mode=True,
+            json_mode=False,  # Groq 的 qwen 对长提示的强制 JSON 校验不稳, 改靠正则提取
         )
         self._apply(raw, transcript)
 
     def _apply(self, raw: str, transcript: Transcript) -> None:
-        try:
-            obj = json.loads(_JSON_SEARCH.search(raw).group(0))
-            changes = obj.get("changes", [])
-        except Exception:
+        obj = _extract_changes_json(raw)
+        if not obj:
             return
+        changes = obj.get("changes", [])
         by_idx = {c.index: c for c in transcript.cues}
         for ch in changes:
             cue = by_idx.get(ch.get("idx"))
