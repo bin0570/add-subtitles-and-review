@@ -22,7 +22,8 @@ class Burner:
     def __init__(self, settings: Settings):
         self.settings = settings
 
-    def dump_texts(self, cues: list[Cue], out_dir: str, use_raw: bool = False) -> dict:
+    def dump_texts(self, cues: list[Cue], out_dir: str, use_raw: bool = False,
+                   video_size: tuple[int, int] | None = None) -> dict:
         """写 SRT + ASS + 原话 SRT。返回各自路径。"""
         d = Path(out_dir)
         d.mkdir(parents=True, exist_ok=True)
@@ -30,7 +31,7 @@ class Burner:
         ass = str(d / "output.ass")
         srt_raw = str(d / "output.original.srt")
         write_srt(cues, srt, use_raw=use_raw)
-        write_ass(cues, ass, self.settings.ass_style, use_raw=use_raw)
+        write_ass(cues, ass, self.settings.ass_style, use_raw=use_raw, video_size=video_size)
         write_srt(cues, srt_raw, use_raw=True)
         return {"srt": srt, "ass": ass, "srt_original": srt_raw}
 
@@ -40,14 +41,18 @@ class Burner:
         d = Path(out_dir)
         d.mkdir(parents=True, exist_ok=True)
         out = str(d / "output.mp4")
-        ass_esc = ass_path.replace("\\", "/")
+        # Windows 下 subtitles filter 对含冒号/中文的绝对路径解析不稳,
+        # 改为把 ffmpeg 的 cwd 设在 delivery 目录, filter 只写纯文件名 output.ass。
+        ass_name = Path(ass_path).name
         cmd = [
             self.settings.ffmpeg_bin, "-y", "-i", media_path,
-            "-vf", f"subtitles='{ass_esc}'",
+            "-vf", f"subtitles={ass_name}",
             "-c:a", "copy", "-c:v", "libx264", "-crf", "20", out,
         ]
         try:
-            subprocess.run(cmd, capture_output=True, text=True, timeout=600, check=True)
+            subprocess.run(
+                cmd, cwd=str(d), capture_output=True, text=True, timeout=600, check=True
+            )
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"FFmpeg 失败: {e.stderr[-500:]}") from e
         except FileNotFoundError:
